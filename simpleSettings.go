@@ -92,6 +92,9 @@ func (s *Settings) getVal(section, param string) string {
 		log.Fatalf("No such param in section %v of settings file: %v\n", section, param)
 		return ""
 	}
+	if strings.HasPrefix(settingsValue, `"`) && strings.HasSuffix(settingsValue, `"`) {
+		settingsValue = strings.Trim(settingsValue, `"`)
+	}
 	return settingsValue
 }
 
