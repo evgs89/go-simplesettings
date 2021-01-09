@@ -1,6 +1,7 @@
 package simplesettings
 
 import (
+	"os"
 	"testing"
 )
 
@@ -82,4 +83,5 @@ func TestSettings_Set(t *testing.T) {
 	_ = s.Set("section2", "Val4", []string{"a", "b", "c"})
 	assertEqual(t, s.Get("section2", "Val4").StringValue, "a, b, c")
 	_ = s.SaveToFile("generated.ini")
+	_ = os.Remove("generated.ini")
 }
