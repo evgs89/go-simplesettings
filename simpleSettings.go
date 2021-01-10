@@ -10,14 +10,14 @@ import (
 	"strings"
 )
 
-type settingsSection map[string]*settingsValue
+type settingsSection map[string]*SettingsValue
 
 func newSettingsSection() *settingsSection {
 	ss := settingsSection{}
 	return &ss
 }
 
-func (ss settingsSection) AddValue(sv *settingsValue) {
+func (ss settingsSection) AddValue(sv *SettingsValue) {
 	ss[sv.Name] = sv
 }
 
@@ -33,32 +33,33 @@ func (ss settingsSection) String() string {
 	return out
 }
 
-type settingsValue struct {
+type SettingsValue struct {
 	Name        string
 	StringValue string
 }
 
-func NewValue(name string, value interface{}) *settingsValue {
+// NewValue - SettingsValue constructor
+func NewValue(name string, value interface{}) *SettingsValue {
 	switch value.(type) {
 	case string:
-		return &settingsValue{Name: name, StringValue: value.(string)}
+		return &SettingsValue{Name: name, StringValue: value.(string)}
 	case int:
-		return &settingsValue{name, strconv.Itoa(value.(int))}
+		return &SettingsValue{name, strconv.Itoa(value.(int))}
 	case bool:
 		if value.(bool) {
-			return &settingsValue{name, "TRUE"}
+			return &SettingsValue{name, "TRUE"}
 		} else {
-			return &settingsValue{name, "FALSE"}
+			return &SettingsValue{name, "FALSE"}
 		}
 	case []string:
-		return &settingsValue{name, strings.Join(value.([]string), ", ")}
+		return &SettingsValue{name, strings.Join(value.([]string), ", ")}
 	default:
 		panic(fmt.Sprintf("Can't save value as Settings element: %v", value))
 		return nil
 	}
 }
 
-func newValueFromString(st string) (*settingsValue, error) {
+func newValueFromString(st string) (*SettingsValue, error) {
 	// it's possibly value
 	split := strings.SplitN(st, "=", 2)
 	if len(split) > 1 {
@@ -71,11 +72,13 @@ func newValueFromString(st string) (*settingsValue, error) {
 	}
 }
 
-func (val *settingsValue) ParseString() string {
+// ParseString returns settings value as string
+func (val *SettingsValue) ParseString() string {
 	return val.StringValue
 }
 
-func (val *settingsValue) ParseInt() int {
+// ParseInt returns settings value as integer or panics
+func (val *SettingsValue) ParseInt() int {
 	if intVal, err := strconv.Atoi(val.StringValue); err != nil {
 		panic(fmt.Sprintf("Error parsing param %v to int", val.Name))
 		return 0
@@ -84,7 +87,8 @@ func (val *settingsValue) ParseInt() int {
 	}
 }
 
-func (val *settingsValue) ParseArray() []string {
+// ParseArray returns settings value as slice of strings
+func (val *SettingsValue) ParseArray() []string {
 	splitVal := strings.Split(val.StringValue, ",")
 	var arrVal []string
 	for _, v := range splitVal {
@@ -93,14 +97,15 @@ func (val *settingsValue) ParseArray() []string {
 	return arrVal
 }
 
-func (val *settingsValue) ParseBool() bool {
+// ParseBool tries to parse boolean value, if can't, it will return true if string is not empty
+func (val *SettingsValue) ParseBool() bool {
 	if strings.ToLower(val.StringValue) == "false" || val.StringValue == "" || val.StringValue == "0" {
 		return false
 	}
 	return true
 }
 
-func (val *settingsValue) String() string {
+func (val *SettingsValue) String() string {
 	return fmt.Sprintf("%v = %v", val.Name, val.StringValue)
 }
 
@@ -144,7 +149,8 @@ func NewSettingsFromFile(filename string) *Settings {
 	return s
 }
 
-func (s *Settings) Get(section, key string) *settingsValue {
+// Get SettingsValue from settings
+func (s *Settings) Get(section, key string) *SettingsValue {
 	ss := (*s)[section]
 	if ss == nil {
 		log.Fatalf("no such section in settings: %v", section)
@@ -153,6 +159,7 @@ func (s *Settings) Get(section, key string) *settingsValue {
 	return (*(*s)[section])[key]
 }
 
+// Set string, int, bool, slice value to settings object
 func (s *Settings) Set(section, key string, value interface{}) error {
 	val := NewValue(key, value)
 	if val == nil {
@@ -167,6 +174,7 @@ func (s *Settings) Set(section, key string, value interface{}) error {
 	return nil
 }
 
+// String prints all settings in INI-like style
 func (s *Settings) String() string {
 	out := fmt.Sprintf("%v\n", (*s)[""])
 	for section, values := range *s {
@@ -178,6 +186,7 @@ func (s *Settings) String() string {
 	return out
 }
 
+// SaveToFile saves Settings object to INI-like text file
 func (s *Settings) SaveToFile(filename string) error {
 	data := []byte(s.String())
 	err := ioutil.WriteFile(filename, data, 0644)
