@@ -35,9 +35,9 @@ import "github.com/evgs89/go-simplesettings"
 func main() {
 	s := simplesettings.NewSettingsFromFile("settings.ini")
 	// read
+	StrVal := s.Get("section1", "StrVal")       // "abc"
 	IntVal := s.GetInt("", "IntVal")            // 123
 	BoolVal := s.GetBool("section1", "BoolVal") // true
-	StrVal := s.Get("section1", "StrVal")       // "abc"
 	ArrVal := s.GetArray("section2", "ArrVal")  // []string{"a", "b", "c"}
 	
 	// save
