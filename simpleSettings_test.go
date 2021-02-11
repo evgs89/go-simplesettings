@@ -10,10 +10,10 @@ const testSettingsFilename = "test_settings.ini"
 func TestNewSettingsFromFile(t *testing.T) {
 	t.Parallel()
 	s := NewSettingsFromFile(testSettingsFilename)
-	if s.Get("", "ListValue") == nil {
+	if s.getVal("", "ListValue") == nil {
 		t.Error("Fail to read param from root")
 	}
-	if s.Get("SECTION 1", "BoolValue3") == nil {
+	if s.getVal("SECTION 1", "BoolValue3") == nil {
 		t.Error("Fail to read empty param")
 	}
 }
@@ -22,12 +22,12 @@ func TestSettings_Get(t *testing.T) {
 	t.Parallel()
 	s := NewSettingsFromFile(testSettingsFilename)
 	// test string
-	tvs := s.Get("SECTION 1", "StringValue1").ParseString()
+	tvs := s.Get("SECTION 1", "StringValue1")
 	if tvs != "SomeText" {
 		t.Error("Fail to read string")
 	}
 	// test int
-	tvi := s.Get("SECTION 2", "IntValue").ParseInt()
+	tvi := s.GetInt("SECTION 2", "IntValue")
 	if tvi != 2398 {
 		t.Error("Fail to read int")
 	}
@@ -36,30 +36,30 @@ func TestSettings_Get(t *testing.T) {
 			t.Error("ParseInt didn't Fail on wrong value")
 		}
 	}()
-	tvi = s.Get("SECTION 1", "StringValue1").ParseInt()
+	tvi = s.GetInt("SECTION 1", "StringValue1")
 	// test bool
-	tvb := s.Get("SECTION 1", "BoolValue1").ParseBool()
+	tvb := s.GetBool("SECTION 1", "BoolValue1")
 	if !tvb {
 		t.Error("Fail to read bool")
 	}
-	tvb = s.Get("SECTION 1", "BoolValue2").ParseBool()
+	tvb = s.GetBool("SECTION 1", "BoolValue2")
 	if tvb {
 		t.Error("Fail to read bool")
 	}
-	tvb = s.Get("SECTION 1", "BoolValue3").ParseBool()
+	tvb = s.GetBool("SECTION 1", "BoolValue3")
 	if tvb {
 		t.Error("Fail to read bool")
 	}
-	tvb = s.Get("SECTION 1", "BoolValue2").ParseBool()
+	tvb = s.GetBool("SECTION 1", "BoolValue2")
 	if tvb {
 		t.Error("Fail to read bool")
 	}
-	tvb = s.Get("SECTION 1", "StringValue1").ParseBool()
+	tvb = s.GetBool("SECTION 1", "StringValue1")
 	if !tvb {
 		t.Error("Fail to read bool")
 	}
 	// test array
-	tva := s.Get("", "ListValue").ParseArray()
+	tva := s.GetArray("", "ListValue")
 	if len(tva) != 3 {
 		t.Error("Fail to read array")
 	}
@@ -75,13 +75,13 @@ func TestSettings_Set(t *testing.T) {
 	t.Parallel()
 	s := NewSettings()
 	_ = s.Set("", "Val1", 123)
-	assertEqual(t, s.Get("", "Val1").StringValue, "123")
+	assertEqual(t, s.Get("", "Val1"), "123")
 	_ = s.Set("section1", "Val2", true)
-	assertEqual(t, s.Get("section1", "Val2").StringValue, "TRUE")
+	assertEqual(t, s.Get("section1", "Val2"), "TRUE")
 	_ = s.Set("section1", "Val3", "abc")
-	assertEqual(t, s.Get("section1", "Val3").StringValue, "abc")
+	assertEqual(t, s.Get("section1", "Val3"), "abc")
 	_ = s.Set("section2", "Val4", []string{"a", "b", "c"})
-	assertEqual(t, s.Get("section2", "Val4").StringValue, "a, b, c")
+	assertEqual(t, s.Get("section2", "Val4"), "a, b, c")
 	_ = s.SaveToFile("generated.ini")
 	_ = os.Remove("generated.ini")
 }
