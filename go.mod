@@ -1,3 +1,3 @@
-module github.com/evgs89/go-simplesettings/v2
+module github.com/evgs89/go-simplesettings
 
 go 1.12
