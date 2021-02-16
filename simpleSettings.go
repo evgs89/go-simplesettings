@@ -10,11 +10,11 @@ import (
 )
 
 // Settings is storage object for program settings
-type Settings map[string]*settingsSection
+type Settings map[string]*SettingsSection
 
 // NewSettings - Settings constructor.
 func NewSettings() *Settings {
-	s := Settings{"": newSettingsSection()}
+	s := Settings{"": NewSettingsSection()}
 	return &s
 }
 
@@ -28,19 +28,19 @@ func NewSettingsFromFile(filename string) *Settings {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	currentSection := ""
-	currentSectionValues := newSettingsSection()
+	currentSectionValues := NewSettingsSection()
 	for scanner.Scan() {
 		st := scanner.Text()
 		if (!strings.HasPrefix(st, "#")) && (!strings.HasPrefix(st, ";")) && len(st) > 2 {
 			if strings.HasPrefix(st, "[") {
 				// it's section name
 				(*s)[currentSection] = currentSectionValues
-				currentSectionValues = newSettingsSection()
+				currentSectionValues = NewSettingsSection()
 				currentSection = strings.Trim(st, "[ ]")
 			} else {
 				// it's possibly value
 				if value, err := newValueFromString(st); err == nil {
-					currentSectionValues.AddValue(value)
+					currentSectionValues.addValue(value)
 				}
 			}
 		}
@@ -49,8 +49,8 @@ func NewSettingsFromFile(filename string) *Settings {
 	return s
 }
 
-// Get SettingsValue from settings
-func (s *Settings) getVal(section, key string) *SettingsValue {
+// Get settingsValue from settings
+func (s *Settings) getVal(section, key string) *settingsValue {
 	ss := (*s)[section]
 	if ss == nil {
 		log.Fatalf("no such section in settings: %v", section)
@@ -61,37 +61,32 @@ func (s *Settings) getVal(section, key string) *SettingsValue {
 
 // Get string value from Settings object
 func (s *Settings) Get(section, key string) string {
-	return s.getVal(section, key).ParseString()
+	return (*s)[section].Get(key)
 }
 
 // GetInt - get integer value from Settings object
 func (s *Settings) GetInt(section, key string) int {
-	return s.getVal(section, key).ParseInt()
+	return (*s)[section].GetInt(key)
 }
 
 // GetBool - get boolean value from Settings object
 func (s *Settings) GetBool(section, key string) bool {
-	return s.getVal(section, key).ParseBool()
+	return (*s)[section].GetBool(key)
 }
 
 // GetArray - get []string value from Settings object
 func (s *Settings) GetArray(section, key string) []string {
-	return s.getVal(section, key).ParseArray()
+	return (*s)[section].GetArray(key)
 }
 
-// Set string, int, bool, slice value to settings object
+// Set string, int, bool, slice value to Settings object
 func (s *Settings) Set(section, key string, value interface{}) error {
-	val := NewValue(key, value)
-	if val == nil {
-		return fmt.Errorf("can't save as value: %v", val)
-	}
 	ss := (*s)[section]
 	if ss == nil {
-		ss = &settingsSection{}
+		ss = &SettingsSection{}
 		(*s)[section] = ss
 	}
-	ss.AddValue(val)
-	return nil
+	return ss.Set(key, value)
 }
 
 // String prints all settings in INI-like style
