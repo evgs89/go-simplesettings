@@ -2,49 +2,72 @@ package simplesettings
 
 import (
 	"fmt"
+	"sync"
 )
 
-type SettingsSection map[string]*settingsValue
-
-func NewSettingsSection() *SettingsSection {
-	ss := SettingsSection{}
-	return &ss
+// SettingsSection is a structure to hold key-value pairs and process them as settings values
+type SettingsSection struct {
+	lock   sync.RWMutex
+	Values map[string]*settingsValue
 }
 
-func (ss SettingsSection) addValue(sv *settingsValue) {
-	ss[sv.Name] = sv
+func newSettingsSection() *SettingsSection {
+	ss := &SettingsSection{}
+	ss.Values = make(map[string]*settingsValue)
+	return ss
 }
 
-func (ss SettingsSection) DeleteValue(name string) {
-	delete(ss, name)
+func (ss *SettingsSection) addValue(sv *settingsValue) {
+	ss.lock.Lock()
+	defer ss.lock.Unlock()
+	ss.Values[sv.Name] = sv
 }
 
-func (ss SettingsSection) String() string {
+// DeleteValue with given name from this section
+func (ss *SettingsSection) DeleteValue(name string) {
+	ss.lock.Lock()
+	defer ss.lock.Unlock()
+	delete(ss.Values, name)
+}
+
+func (ss *SettingsSection) String() string {
 	out := ""
-	for _, val := range ss {
+	ss.lock.RLock()
+	for _, val := range ss.Values {
 		out += fmt.Sprintf("%v\n", val)
 	}
+	ss.lock.RUnlock()
 	return out
+}
+
+func (ss *SettingsSection) getVal(key string) settingsValue {
+	ss.lock.RLock()
+	defer ss.lock.RUnlock()
+	val := ss.Values[key]
+	if val == nil {
+		panic(fmt.Sprintf("Key %v not found in this settings section", key))
+	}
+	return *val
 }
 
 // Get string value from SettingsSection object
 func (ss *SettingsSection) Get(key string) string {
-	return (*ss)[key].ParseString()
+	return ss.getVal(key).ParseString()
 }
 
 // GetInt - get integer value from SettingsSection object
 func (ss *SettingsSection) GetInt(key string) int {
-	return (*ss)[key].ParseInt()
+	return ss.getVal(key).ParseInt()
 }
 
 // GetBool - get boolean value from SettingsSection object
 func (ss *SettingsSection) GetBool(key string) bool {
-	return (*ss)[key].ParseBool()
+	return ss.getVal(key).ParseBool()
 }
 
 // GetArray - get []string value from SettingsSection object
 func (ss *SettingsSection) GetArray(key string) []string {
-	return (*ss)[key].ParseArray()
+	return ss.getVal(key).ParseArray()
 }
 
 // Set string, int, bool, slice value to SettingsSection object
