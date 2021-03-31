@@ -10,10 +10,10 @@ const testSettingsFilename = "test_settings.ini"
 func TestNewSettingsFromFile(t *testing.T) {
 	t.Parallel()
 	s := NewSettingsFromFile(testSettingsFilename)
-	if s.getVal("", "ListValue") == nil {
+	if len(s.Get("", "ListValue")) == 0 {
 		t.Error("Fail to read param from root")
 	}
-	if s.getVal("SECTION 1", "BoolValue3") == nil {
+	if s.GetBool("SECTION 1", "BoolValue3") != false {
 		t.Error("Fail to read empty param")
 	}
 }
@@ -84,4 +84,11 @@ func TestSettings_Set(t *testing.T) {
 	assertEqual(t, s.Get("section2", "Val4"), "a, b, c")
 	_ = s.SaveToFile("generated.ini")
 	_ = os.Remove("generated.ini")
+}
+
+func TestSettings_HasSection(t *testing.T) {
+	t.Parallel()
+	s := NewSettingsFromFile(testSettingsFilename)
+	has := s.HasSection("SECTION 1")
+	assertEqual(t, has, true)
 }
