@@ -10,10 +10,10 @@ const testSettingsFilename = "test_settings.ini"
 func TestNewSettingsFromFile(t *testing.T) {
 	t.Parallel()
 	s := NewSettingsFromFile(testSettingsFilename)
-	if s.getVal("", "ListValue") == nil {
+	if len(s.Get("", "ListValue")) == 0 {
 		t.Error("Fail to read param from root")
 	}
-	if s.getVal("SECTION 1", "BoolValue3") == nil {
+	if s.GetBool("SECTION 1", "BoolValue3") != false {
 		t.Error("Fail to read empty param")
 	}
 }
