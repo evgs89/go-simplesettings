@@ -48,14 +48,14 @@ func main() {
 	err := s.Set("section2", "NewArrVal", []string{"aa", "bb", "cc"}) // nil
 	err = s.Set("section2", "NewBoolVal", false)                      // nil
 
-  // You can use SettingsSection object directly and pass it to some sub-routine
-  section1 := s.GetSection("section1")
-  s1BoolVal := section1.GetBool("BoolVar")
-  err = section1.Set("NewStringVal", "SomeString")
+	// You can use SettingsSection object directly and pass it to some sub-routine
+	section1 := s.GetSection("section1")
+	s1BoolVal := section1.GetBool("BoolVar")
+	err = section1.Set("NewStringVal", "SomeString")
 
 	newSection := s.AddSection("newSection")
 	exists := s.HasSection("newSection") // true
-  err = newSection.Set("NewIntVal", 123)
+	err = newSection.Set("NewIntVal", 123)
 
 	// write to disk
 	err = s.SaveToFile("modified_settings.ini") // nil
